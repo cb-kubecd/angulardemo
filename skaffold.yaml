@@ -1,0 +1,31 @@
+apiVersion: skaffold/v1beta2
+kind: Config
+build:
+  tagPolicy:
+    envTemplate:
+      template: "{{.DOCKER_REGISTRY}}/cb-kubecd/angulardemo:{{.VERSION}}"
+  artifacts:
+  - image: changeme
+    context: .
+    docker: {}
+  local: {}
+deploy:
+  kubectl:
+    manifests:
+profiles:
+- name: dev
+  build:
+    tagPolicy:
+      envTemplate:
+        template: "{{.DOCKER_REGISTRY}}/cb-kubecd/angulardemo:{{.DIGEST_HEX}}"
+    artifacts:
+    - docker: {}
+    local: {}
+  deploy:
+    helm:
+      releases:
+      - name: angulardemo
+        chartPath: charts/angulardemo
+        setValueTemplates:
+          image.repository: "{{.DOCKER_REGISTRY}}/cb-kubecd/angulardemo"
+          image.tag: "{{.DIGEST_HEX}}"
